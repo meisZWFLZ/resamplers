@@ -17,7 +17,7 @@ impl Resampler for MultinomialResampler {
         let cumsum: [f32; N] = input.cum_sum();
 
         std::iter::from_fn(move || {
-            let target: f32 = (rng)();
+            let target: f32 = rng();
             Some(cumsum.iter().position(|&x| x >= target).unwrap())
         })
     }

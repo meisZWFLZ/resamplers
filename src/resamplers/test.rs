@@ -2,9 +2,7 @@
 
 #![cfg(test)]
 
-use crate::Weights;
-use crate::resamplers::Resampler;
-
+use crate::{Weights, resamplers::Resampler};
 
 /// Resample using a real RNG (Xoroshiro128PlusPlus with a fixed seed)
 pub(crate) fn resample_real_rng<R: Resampler, const N: usize>(

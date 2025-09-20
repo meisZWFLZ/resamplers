@@ -17,7 +17,7 @@ impl Resampler for StratifiedResampler {
     ) -> impl Iterator<Item = usize> {
         let cumsum: [f32; N] = weights.cum_sum();
 
-        let positions = (0..N).map(move |i| (i as f32 + (rngfn)()) / (N as f32));
+        let positions = (0..N).map(move |i| (i as f32 + rngfn()) / (N as f32));
 
         positions.map(move |target| cumsum.iter().position(|&x| x >= target).unwrap())
     }
@@ -45,7 +45,7 @@ mod tests {
         let output = test::resample_faked_rng(
             StratifiedResampler::new(),
             Weights::normalize([3., 3., 1., 1.]).unwrap(),
-            vec![0., 0., 0., 0.75]
+            vec![0., 0., 0., 0.75],
         );
 
         assert_eq!(output, [0, 0, 1, 3]);
