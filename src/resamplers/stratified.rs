@@ -1,5 +1,4 @@
-use crate::Weights;
-use crate::resamplers::Resampler;
+use crate::{Weights, resamplers::Resampler};
 
 pub struct StratifiedResampler {}
 
@@ -9,7 +8,7 @@ impl StratifiedResampler {
     }
 }
 
-impl Resampler for StratifiedResampler {
+impl Resampler for &StratifiedResampler {
     fn resample<const N: usize, F: FnMut() -> f32>(
         self,
         weights: Weights<N>,
@@ -26,14 +25,13 @@ impl Resampler for StratifiedResampler {
 #[cfg(test)]
 mod tests {
 
-    use super::super::test;
-    use super::*;
+    use super::{super::test, *};
 
     /// Does not test output, just that it runs without panic
     #[test]
     fn with_real_rng() {
         let output = test::resample_real_rng(
-            StratifiedResampler::new(),
+            &StratifiedResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
         );
 
@@ -43,7 +41,7 @@ mod tests {
     #[test]
     fn with_faked_rng() {
         let output = test::resample_faked_rng(
-            StratifiedResampler::new(),
+            &StratifiedResampler::new(),
             Weights::normalize([3., 3., 1., 1.]).unwrap(),
             vec![0., 0., 0., 0.75],
         );

@@ -11,7 +11,7 @@ impl ResidualResampler {
     }
 }
 
-impl Resampler for ResidualResampler {
+impl Resampler for &ResidualResampler {
     fn resample<const N: usize, F: FnMut() -> f32>(
         self,
         weights: Weights<N>,
@@ -19,6 +19,8 @@ impl Resampler for ResidualResampler {
     ) -> impl Iterator<Item = usize> {
         let weights: [f32; N] = weights.as_array().map(|w| w * N as f32);
 
+        let multinomial_iter = MultinomialResampler::new()
+            .resample(Weights::normalize(weights.map(|x| x.fract())).unwrap(), rng);
         weights
             .into_iter()
             .enumerate()
@@ -26,11 +28,7 @@ impl Resampler for ResidualResampler {
                 let n = x.floor() as usize;
                 std::iter::repeat(i).take(n)
             })
-            .chain({
-                let multinomial_resampler = MultinomialResampler::new();
-                multinomial_resampler
-                    .resample(Weights::normalize(weights.map(|x| x.fract())).unwrap(), rng)
-            })
+            .chain(multinomial_iter)
     }
 }
 
@@ -42,7 +40,7 @@ mod tests {
     #[test]
     fn test_with_rng() {
         let output = crate::resamplers::test::resample_real_rng(
-            ResidualResampler::new(),
+            &ResidualResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
         );
         println!("{:?}", output);

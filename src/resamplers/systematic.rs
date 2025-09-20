@@ -8,7 +8,7 @@ impl SystematicResampler {
     }
 }
 
-impl Resampler for SystematicResampler {
+impl Resampler for &SystematicResampler {
     fn resample<const N: usize, F: FnMut() -> f32>(
         self,
         weights: Weights<N>,
@@ -26,14 +26,13 @@ impl Resampler for SystematicResampler {
 #[cfg(test)]
 mod tests {
 
-    use super::super::test;
-    use super::*;
+    use super::{super::test, *};
 
     /// Does not test output, just that it runs without panic
     #[test]
     fn test_with_rng() {
         let output = test::resample_real_rng(
-            SystematicResampler::new(),
+            &SystematicResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
         );
         println!("{:?}", output);
@@ -42,7 +41,7 @@ mod tests {
     #[test]
     fn test_with_faked_rng() {
         let output = test::resample_faked_rng(
-            SystematicResampler::new(),
+            &SystematicResampler::new(),
             Weights::normalize([3., 1., 1., 3.]).unwrap(),
             vec![0.49f32],
         );
