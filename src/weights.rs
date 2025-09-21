@@ -43,6 +43,37 @@ impl<const N: usize> Weights<N> {
             .try_into()
             .unwrap()
     }
+
+    pub fn from_samples_and_density<
+        T,
+        Xs: Iterator<Item = T>,
+        D: crate::densities::DensityFunc<T>,
+    >(
+        xs: Xs,
+        density: &D,
+    ) -> Option<Self> {
+        let weights = xs
+            .map(|x| density.eval(x))
+            .take(N)
+            .collect::<Vec<f32>>()
+            .try_into()
+            .ok()?;
+
+        Self::normalize(weights)
+    }
+
+    pub fn from_range_and_density<
+        Range: rand::distr::uniform::SampleRange<f32> + Clone,
+        D: crate::densities::DensityFunc<f32>,
+        R: rand::Rng,
+    >(
+        range: Range,
+        density: &D,
+        rng: &mut R,
+    ) -> Option<Self> {
+        let xs = std::iter::from_fn(move || Some(rng.random_range(range.clone())));
+        Self::from_samples_and_density(xs, density)
+    }
 }
 
 impl<const N: usize> From<Weights<N>> for [f32; N] {
