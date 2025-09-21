@@ -39,12 +39,20 @@ impl Resampler for &MultinomialResampler {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::test, *};
+    extern crate test;
+    use test::Bencher;
+
+    use crate::densities::Gaussian;
+
+    use super::{
+        super::test::{bench, resample_faked_rng, resample_real_rng},
+        *,
+    };
 
     /// Does not test output, just that it runs without panic
     #[test]
     fn test_with_rng() {
-        let output = test::resample_real_rng(
+        let output = resample_real_rng(
             &MultinomialResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
         );
@@ -53,12 +61,23 @@ mod tests {
 
     #[test]
     fn test_with_faked_rng() {
-        let output = test::resample_faked_rng(
+        let output = resample_faked_rng(
             &MultinomialResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
             vec![0.05f32, 0.8f32, 0.2f32, 0.35f32],
         );
 
         assert_eq!(output, [0, 3, 1, 2]);
+    }
+
+    #[bench]
+    fn bench_resample(b: &mut Bencher) {
+        const N: usize = 1000;
+        bench::<N, _, _, _>(
+            b,
+            MultinomialResampler::new(),
+            -5f32..5f32,
+            &Gaussian::new(0., 1.),
+        )
     }
 }

@@ -2,7 +2,8 @@
 
 #![cfg(test)]
 
-use crate::{Weights, resamplers::Resampler};
+extern crate test;
+use crate::{Weights, densities::DensityFunc, resamplers::Resampler};
 
 /// Resample using a real RNG (Xoroshiro128PlusPlus with a fixed seed)
 pub(crate) fn resample_real_rng<R: Resampler, const N: usize>(
@@ -44,4 +45,34 @@ pub(crate) fn resample_faked_rng<R: Resampler, const N: usize>(
         .collect::<Vec<usize>>()
         .try_into()
         .unwrap()
+}
+
+pub(crate) fn bench<
+    const N: usize,
+    R: Resampler + Copy,
+    D: DensityFunc,
+    Range: rand::distr::uniform::SampleRange<f32> + Clone,
+>(
+    b: &mut test::Bencher,
+    resampler: R,
+    range: Range,
+    density: &D,
+) {
+    use rand::Rng;
+    use rand::SeedableRng;
+    use rand_xoshiro::Xoshiro256PlusPlus;
+
+    let mut rng = Xoshiro256PlusPlus::seed_from_u64(42);
+
+    let weights: Weights<N> = Weights::from_range_and_density(range, density, &mut rng)
+        .expect("Density function should produce normal weights.");
+
+    let mut rng_fn = move || rng.random::<f32>();
+
+    b.iter(move || {
+        resampler
+            .resample(weights, &mut rng_fn)
+            .take(N)
+            .collect::<Vec<usize>>()
+    });
 }
