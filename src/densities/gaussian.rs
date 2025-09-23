@@ -21,3 +21,20 @@ impl DensityFunc for Gaussian {
         self.coeff * (-0.5 * ((x - self.mean) / self.std_dev).powi(2)).exp()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    extern crate test;
+
+    use std::{f32::consts::E, f32::consts::PI};
+
+    use super::*;
+
+    #[bench]
+    fn bench_gaussian_eval(b: &mut test::Bencher) {
+        let gaussian = Gaussian::new(0.0, 1.0);
+        b.iter(|| {
+            gaussian.eval(test::black_box(PI - E));
+        });
+    }
+}
