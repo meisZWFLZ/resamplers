@@ -11,7 +11,7 @@ impl SystematicResampler {
 
 #[derive(Debug, Clone)]
 struct SystematicIterator {
-    /// Sorted greatest to least 
+    /// Sorted greatest to least
     cum_weights: Vec<f32>,
     step: f32,
     position: f32,
@@ -41,7 +41,7 @@ impl Iterator for SystematicIterator {
     fn next(&mut self) -> Option<Self::Item> {
         while self.cum_weights.pop_if(|x| *x < self.position).is_some() {
             self.index += 1;
-        };
+        }
         self.position += self.step;
         Some(self.index)
     }
