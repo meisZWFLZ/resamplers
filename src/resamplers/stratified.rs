@@ -24,13 +24,20 @@ impl Resampler for &StratifiedResampler {
 
 #[cfg(test)]
 mod tests {
+    extern crate test;
+    use test::Bencher;
 
-    use super::{super::test, *};
+    use crate::densities::Gaussian;
+
+    use super::{
+        super::test::{bench, resample_faked_rng, resample_real_rng},
+        *,
+    };
 
     /// Does not test output, just that it runs without panic
     #[test]
     fn with_real_rng() {
-        let output = test::resample_real_rng(
+        let output = resample_real_rng(
             &StratifiedResampler::new(),
             Weights::try_new([0.1, 0.2, 0.3, 0.4]).unwrap(),
         );
@@ -40,12 +47,23 @@ mod tests {
 
     #[test]
     fn with_faked_rng() {
-        let output = test::resample_faked_rng(
+        let output = resample_faked_rng(
             &StratifiedResampler::new(),
             Weights::normalize([3., 3., 1., 1.]).unwrap(),
             vec![0., 0., 0., 0.75],
         );
 
         assert_eq!(output, [0, 0, 1, 3]);
+    }
+
+    #[bench]
+    fn bench_resample(b: &mut Bencher) {
+        const N: usize = 1000;
+        bench::<N, _, _, _>(
+            b,
+            &StratifiedResampler::new(),
+            -3f32..3f32,
+            &Gaussian::new(0., 1.),
+        )
     }
 }
