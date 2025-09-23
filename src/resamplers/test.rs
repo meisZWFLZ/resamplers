@@ -49,7 +49,7 @@ pub(crate) fn resample_faked_rng<R: Resampler, const N: usize>(
 
 pub(crate) fn bench<
     const N: usize,
-    R: Resampler + Copy,
+    R: Resampler + Clone,
     D: DensityFunc,
     Range: rand::distr::uniform::SampleRange<f32> + Clone,
 >(
@@ -71,6 +71,7 @@ pub(crate) fn bench<
 
     b.iter(move || {
         resampler
+            .clone()
             .resample(weights, &mut rng_fn)
             .take(N)
             .collect::<Vec<usize>>()
